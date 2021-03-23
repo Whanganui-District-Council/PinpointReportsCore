@@ -17,3 +17,5 @@ Each page can contain combinations of maps and/or data derived from local data s
 One or more Templates referenced by the config file define the page layouts required throughout the PDF Report.
 
 Foreign PDF documents can be inserted at any point either as defined pages, page ranges or an entire PDF document.
+
+![image](https://user-images.githubusercontent.com/62117895/112086147-94375c00-8bf0-11eb-8c2c-75ec7cc7df19.png)
