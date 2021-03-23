@@ -10,6 +10,8 @@ TBC
 
 TBC
 
+[Installing GDAL](Ubuntu-Install-GDAL.md)
+
 [Installing dotnet](Ubuntu-Install-dotnet.md)
 
 [Installing ODBC](Ubuntu-Install-ODBC.md)
