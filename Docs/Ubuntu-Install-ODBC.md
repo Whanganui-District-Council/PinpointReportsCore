@@ -83,6 +83,43 @@ UsageCount=1
 isql -v username
 ```
 
+# ODBC Setup on Ubuntu for MS SQL Server
+
+
+```
+sudo apt-get update
+```
+
+***
+
+```
+sudo su
+curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list > /etc/apt/sources.list.d/mssql-release.list
+exit
+
+sudo apt-get update
+sudo ACCEPT_EULA=Y apt-get install msodbcsql17
+
+```
+
+### Optional
+```
+
+# optional: for bcp and sqlcmd
+sudo ACCEPT_EULA=Y apt-get install mssql-tools
+echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile
+echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+source ~/.bashrc
+# optional: for unixODBC development headers
+sudo apt-get install unixodbc-dev
+
+```
+
+
+
+
+
 # Connection Strings
 ```
 sudo nano /home/ubuntu/pinpointreports/appsettings.json
@@ -90,6 +127,7 @@ sudo nano /home/ubuntu/pinpointreports/appsettings.json
 ```
   "ConnectionStrings": {
     "pgwdcgisodbc": "Driver={PostgreSQL Unicode};Server=servername;Port=5432;Database=database;Uid=username;Pwd=password;",
-    "pgwdcgisogr": "host=hostname port=5432 dbname=database user=username password='password'"
+    "pgwdcgisogr": "host=hostname port=5432 dbname=database user=username password='password'",
+    "mssqlodbc": "Driver={ODBC Driver 17 for SQL Server};Server=servername;Port=1433;Database=database;Uid=username;Pwd=password;"
   },
 ```
