@@ -14,4 +14,4 @@ TBC
 
 [Installing ODBC](Ubuntu-Install-ODBC.md)
 
-[Setting up Kestral Service](Ubuntu-Kestral-Service.md)
+[Setting up Kestrel Service](Ubuntu-Kestrel-Service.md)
