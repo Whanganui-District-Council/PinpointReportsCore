@@ -1,4 +1,5 @@
-#Setup Service for Kestral
+# Setup Service for Kestral
+
 ## Linux Service
 * https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-apache?view=aspnetcore-3.1
 
@@ -46,7 +47,7 @@ sudo service kestrel-pinpointreports stop
 sudo service kestrel-pinpointreports start
 ```
 
-# Running manually (when service stopped)...
+# Running manually (when service stopped or for debugging in console)...
 
 ```
 cd /opt/pinpointreports
