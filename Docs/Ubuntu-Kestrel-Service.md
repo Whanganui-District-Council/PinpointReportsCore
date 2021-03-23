@@ -1,4 +1,4 @@
-# Setup Service for Kestral
+# Setup Service for Kestrel
 
 ## Linux Service
 * https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-apache?view=aspnetcore-3.1
