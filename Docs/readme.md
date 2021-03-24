@@ -1,6 +1,6 @@
 # Installation
 
-TBC
+Extract the zip file located at https://github.com/Whanganui-District-Council/PinpointReportsCore/releases/latest to your chosen web folder.
 
 ## Windows
 
