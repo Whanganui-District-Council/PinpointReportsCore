@@ -297,10 +297,7 @@ namespace PinpointGeospatial.PinpointReports.Controllers
                                 {
                                     string productionSQL = "" + xpathnodespages.Current.SelectSingleNode("//Pages/Page[position()=" + PageCurrentPos + "]/PageGeneration/PageGenerationSQL/SQL").Value;
                                     Value1 = "";  //reset value string
-                                    Query1 = "" + productionSQL.Replace("@featurekey", FeatureKeys);
-                                    Query1 = "" + Query1.Replace("@pinpointkey", PinPointKey);
-                                    Query1 = "" + Query1.Replace("@databasekey", DatabaseKey);
-                                    Query1 = "" + Query1.Replace("@referencekey", ReferenceKey);
+                                    Query1 = "" + productionSQL;
                                     Connection1 = "" + xpathnodespages.Current.SelectSingleNode("//Pages/Page[position()=" + PageCurrentPos + "]/PageGeneration/PageGenerationSQL/SQL").GetAttribute("connection", "");
                                     DataSet dsProducePage;
                                     dsProducePage = GetDataSetConnName(Query1, Connection1);
@@ -563,9 +560,7 @@ namespace PinpointGeospatial.PinpointReports.Controllers
                                             string dataConnection = "" + xmlConfigDoc1.SelectSingleNode("//Pages/Page[position()=" + PageCurrentPos + "]/ForeignSQLPages/ForeignSQLPage[position()='" + positionValue + "']/SQL/@connection").InnerText;
                                             string dataSQL = "" + xmlConfigDoc1.SelectSingleNode("//Pages/Page[position()=" + PageCurrentPos + "]/ForeignSQLPages/ForeignSQLPage[position()='" + positionValue + "']/SQL").InnerText;
 
-                                            Query1 = "" + dataSQL.Replace("@featurekey", FeatureKeys);
-                                            Query1 = "" + Query1.Replace("@datbasekey", DatabaseKey);
-                                            Query1 = "" + Query1.Replace("@referencekey", ReferenceKey);
+                                            Query1 = "" + dataSQL;
 
                                             DataSet ds2;
                                             Connection1 = dataConnection;
@@ -3228,9 +3223,7 @@ namespace PinpointGeospatial.PinpointReports.Controllers
                                                     string dataConnection = "" + xmlConfigDoc1.SelectSingleNode("//Pages/Page[position()=" + PageCurrentPos + "]/DataTables/SQLDataTable[position()=" + iSQLData + "]/SQL/@connection").InnerText;
                                                     string dataSQL = "" + xmlConfigDoc1.SelectSingleNode("//Pages/Page[position()=" + PageCurrentPos + "]/DataTables/SQLDataTable[position()=" + iSQLData + "]/SQL").InnerText;
 
-                                                    Query1 = "" + dataSQL.Replace("@featurekey", FeatureKeys);
-                                                    Query1 = "" + Query1.Replace("@databasekey", DatabaseKey);
-                                                    Query1 = "" + Query1.Replace("@referencekey", ReferenceKey);
+                                                    Query1 = "" + dataSQL;
 
                                                     DataSet ds2;
                                                     Connection1 = dataConnection;
@@ -4423,9 +4416,6 @@ namespace PinpointGeospatial.PinpointReports.Controllers
                                         {
                                             //Get path for image from SQL datasource
                                             DataSet dsSQLImage;
-                                            ImageSQLURISQLString = "" + ImageSQLURISQLString.Replace("@featurekey", FeatureKeys);
-                                            ImageSQLURISQLString = "" + ImageSQLURISQLString.Replace("@databasekey", DatabaseKey);
-                                            ImageSQLURISQLString = "" + ImageSQLURISQLString.Replace("@referencekey", ReferenceKey);
                                             dsSQLImage = GetDataSetConnName(ImageSQLURISQLString, connectionStringSQLImages);
                                             //Need to check if any tables returned by getdata here
                                             if (dsSQLImage.Tables.Count > 0)
@@ -4636,12 +4626,6 @@ namespace PinpointGeospatial.PinpointReports.Controllers
                                             {
                                                 //Get text for label from SQL datasource
                                                 DataSet LabelSQLDS;
-                                                LabelText = "" + LabelText.Replace("@featurekey", FeatureKeys);
-                                                LabelText = "" + LabelText.Replace("''" + FeatureKeys.Trim('\'') + "''", FeatureKeys);
-                                                LabelText = "" + LabelText.Replace("@databasekey", DatabaseKey);
-                                                LabelText = "" + LabelText.Replace("''" + DatabaseKey.Trim('\'') + "''", DatabaseKey);
-                                                LabelText = "" + LabelText.Replace("@referencekey", ReferenceKey);
-                                                LabelText = "" + LabelText.Replace("''" + ReferenceKey.Trim('\'') + "''", ReferenceKey);
                                                 LabelSQLDS = GetDataSetConnName(LabelText, connectionStringSQLLabels);
                                                 //Need to check if any tables returned by getdata here
                                                 if (LabelSQLDS.Tables.Count > 0)
