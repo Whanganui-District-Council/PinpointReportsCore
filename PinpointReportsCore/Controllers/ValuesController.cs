@@ -31,6 +31,10 @@ namespace PinpointGeospatial.PinpointReports.Controllers
 
     public class ReportController : ControllerBase
     {
+        private string FeatureKeys;
+        private string DatabaseKey;
+        private string ReferenceKey;
+        private string PinPointKey;
 
         [HttpGet]
         public IActionResult GenerateReport()
@@ -84,10 +88,10 @@ namespace PinpointGeospatial.PinpointReports.Controllers
 
 
             // Set defaults
-            string FeatureKeys = "";
-            string DatabaseKey = "";
-            string ReferenceKey = "";
-            string PinPointKey = "'" + DateTime.Now.Ticks + "'";
+            FeatureKeys = "";
+            DatabaseKey = "";
+            ReferenceKey = "";
+            PinPointKey = "'" + DateTime.Now.Ticks + "'";
             string Connection1 = "";
             string Query1 = "";
             string Value1 = "";
@@ -342,7 +346,7 @@ namespace PinpointGeospatial.PinpointReports.Controllers
                                         if (httpcontext.Request.Query["generate"].ToString() != null)
                                         {
                                             GeneratePageList = "" + httpcontext.Request.Query["generate"];
-                                            Regex regex2 = new Regex(@"^\d+(?:,\d+)*$");
+                                            Regex regex2 = new Regex(@"^\d+(?:,\d+)*$", RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
                                             Match match2 = regex2.Match(GeneratePageList);
                                             if (match2.Success)
                                             {
@@ -5510,10 +5514,24 @@ namespace PinpointGeospatial.PinpointReports.Controllers
                 using (OdbcCommand cmd = new OdbcCommand(queryString, connection))
                 {
                     OdbcDataAdapter adapter = new OdbcDataAdapter(queryString, connection);
+
+                    var pFeatureKeys = new OdbcParameter("FeatureKeys", FeatureKeys);
+                    adapter.SelectCommand.Parameters.Add(pFeatureKeys);
+
+                    var pReferenceKey = new OdbcParameter("ReferenceKey", ReferenceKey);
+                    adapter.SelectCommand.Parameters.Add(pReferenceKey);
+
+                    var pDatabaseKey = new OdbcParameter("DatabaseKey", DatabaseKey);
+                    adapter.SelectCommand.Parameters.Add(pDatabaseKey);
+
+                    var pPinPointKey = new OdbcParameter("PinPointKey", PinPointKey);
+                    adapter.SelectCommand.Parameters.Add(pPinPointKey);
+
                     if (Startup.PinpointConfiguration.Configuration.GetSection("AppSettings")["SQLCommandTimeOut"] != null)
                     {
                         adapter.SelectCommand.CommandTimeout = Convert.ToInt16(Startup.PinpointConfiguration.Configuration.GetSection("AppSettings")["SQLCommandTimeOut"]);
                     }
+
                     adapter.Fill(ds);
                 }
                 connection.Close();
@@ -5535,10 +5553,24 @@ namespace PinpointGeospatial.PinpointReports.Controllers
                 using (OdbcCommand cmd = new OdbcCommand(queryString, connection))
                 {
                     OdbcDataAdapter adapter = new OdbcDataAdapter(queryString, connection);
+
+                    var pFeatureKeys = new OdbcParameter("FeatureKeys", FeatureKeys);
+                    adapter.SelectCommand.Parameters.Add(pFeatureKeys);
+
+                    var pReferenceKey = new OdbcParameter("ReferenceKey", ReferenceKey);
+                    adapter.SelectCommand.Parameters.Add(pReferenceKey);
+
+                    var pDatabaseKey = new OdbcParameter("DatabaseKey", DatabaseKey);
+                    adapter.SelectCommand.Parameters.Add(pDatabaseKey);
+
+                    var pPinPointKey = new OdbcParameter("PinPointKey", PinPointKey);
+                    adapter.SelectCommand.Parameters.Add(pPinPointKey);
+
                     if (Startup.PinpointConfiguration.Configuration.GetSection("AppSettings")["SQLCommandTimeOut"] != null)
                     {
                         adapter.SelectCommand.CommandTimeout = Convert.ToInt16(Startup.PinpointConfiguration.Configuration.GetSection("AppSettings")["SQLCommandTimeOut"]);
                     }
+
                     adapter.Fill(ds);
                 }
                 connection.Close();
