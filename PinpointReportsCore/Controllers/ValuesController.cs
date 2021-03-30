@@ -9,6 +9,7 @@ using Syncfusion.Pdf.Parsing;
 using Syncfusion.Pdf.Security;
 using Syncfusion.Pdf.Tables;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Odbc;
@@ -31,10 +32,6 @@ namespace PinpointGeospatial.PinpointReports.Controllers
 
     public class ReportController : ControllerBase
     {
-        private string FeatureKeys;
-        private string DatabaseKey;
-        private string ReferenceKey;
-        private string PinPointKey;
 
         [HttpGet]
         public IActionResult GenerateReport()
@@ -88,10 +85,10 @@ namespace PinpointGeospatial.PinpointReports.Controllers
 
 
             // Set defaults
-            FeatureKeys = "";
-            DatabaseKey = "";
-            ReferenceKey = "";
-            PinPointKey = "'" + DateTime.Now.Ticks + "'";
+            string FeatureKeys = "";
+            string DatabaseKey = "";
+            string ReferenceKey = "";
+            string PinPointKey = "'" + DateTime.Now.Ticks + "'";
             string Connection1 = "";
             string Query1 = "";
             string Value1 = "";
@@ -300,7 +297,7 @@ namespace PinpointGeospatial.PinpointReports.Controllers
                                     Query1 = "" + productionSQL;
                                     Connection1 = "" + xpathnodespages.Current.SelectSingleNode("//Pages/Page[position()=" + PageCurrentPos + "]/PageGeneration/PageGenerationSQL/SQL").GetAttribute("connection", "");
                                     DataSet dsProducePage;
-                                    dsProducePage = GetDataSetConnName(Query1, Connection1);
+                                    dsProducePage = GetDataSetConnName(Query1, Connection1, FeatureKeys, ReferenceKey, DatabaseKey, PinPointKey);
 
                                     if (dsProducePage.Tables.Count > 0)
                                     {
@@ -564,7 +561,7 @@ namespace PinpointGeospatial.PinpointReports.Controllers
 
                                             DataSet ds2;
                                             Connection1 = dataConnection;
-                                            ds2 = GetDataSetConnName(Query1, Connection1);
+                                            ds2 = GetDataSetConnName(Query1, Connection1, FeatureKeys, ReferenceKey, DatabaseKey, PinPointKey);
 
                                             //Need to check if any tables returned by getdata here
                                             if (ds2.Tables.Count > 0)
@@ -3227,7 +3224,7 @@ namespace PinpointGeospatial.PinpointReports.Controllers
 
                                                     DataSet ds2;
                                                     Connection1 = dataConnection;
-                                                    ds2 = GetDataSetConnName(Query1, Connection1);
+                                                    ds2 = GetDataSetConnName(Query1, Connection1, FeatureKeys, ReferenceKey, DatabaseKey, PinPointKey);
 
                                                     //Need to check if any tables returned by getdata here
                                                     if (ds2.Tables.Count > 0)
@@ -4416,7 +4413,7 @@ namespace PinpointGeospatial.PinpointReports.Controllers
                                         {
                                             //Get path for image from SQL datasource
                                             DataSet dsSQLImage;
-                                            dsSQLImage = GetDataSetConnName(ImageSQLURISQLString, connectionStringSQLImages);
+                                            dsSQLImage = GetDataSetConnName(ImageSQLURISQLString, connectionStringSQLImages, FeatureKeys, ReferenceKey, DatabaseKey, PinPointKey);
                                             //Need to check if any tables returned by getdata here
                                             if (dsSQLImage.Tables.Count > 0)
                                             {
@@ -4626,7 +4623,7 @@ namespace PinpointGeospatial.PinpointReports.Controllers
                                             {
                                                 //Get text for label from SQL datasource
                                                 DataSet LabelSQLDS;
-                                                LabelSQLDS = GetDataSetConnName(LabelText, connectionStringSQLLabels);
+                                                LabelSQLDS = GetDataSetConnName(LabelText, connectionStringSQLLabels, FeatureKeys, ReferenceKey, DatabaseKey, PinPointKey);
                                                 //Need to check if any tables returned by getdata here
                                                 if (LabelSQLDS.Tables.Count > 0)
                                                 {
@@ -5487,37 +5484,60 @@ namespace PinpointGeospatial.PinpointReports.Controllers
             return downloadedData;
         }
 
-        private DataSet GetDataSetConnName(String queryString, String databaseConnName)
+        private DataSet GetDataSetConnName(String queryString, String databaseConnName, string FeatureKeys, string ReferenceKey, string DatabaseKey, string PinPointKey)
         {
             DataSet ds = new DataSet();
             try
             {
-                OdbcConnection connection;
-                connection = new OdbcConnection(Startup.PinpointConfiguration.Configuration.GetSection("ConnectionStrings")[databaseConnName].ToString());
+                using OdbcConnection connection = new OdbcConnection(Startup.PinpointConfiguration.Configuration.GetSection("ConnectionStrings")[databaseConnName].ToString());
                 connection.Open();
-                using (OdbcCommand cmd = new OdbcCommand(queryString, connection))
+
+                if (FeatureKeys.StartsWith("'") && FeatureKeys.EndsWith("'"))
                 {
-                    OdbcDataAdapter adapter = new OdbcDataAdapter(queryString, connection);
-
-                    var pFeatureKeys = new OdbcParameter("FeatureKeys", FeatureKeys);
-                    adapter.SelectCommand.Parameters.Add(pFeatureKeys);
-
-                    var pReferenceKey = new OdbcParameter("ReferenceKey", ReferenceKey);
-                    adapter.SelectCommand.Parameters.Add(pReferenceKey);
-
-                    var pDatabaseKey = new OdbcParameter("DatabaseKey", DatabaseKey);
-                    adapter.SelectCommand.Parameters.Add(pDatabaseKey);
-
-                    var pPinPointKey = new OdbcParameter("PinPointKey", PinPointKey);
-                    adapter.SelectCommand.Parameters.Add(pPinPointKey);
-
-                    if (Startup.PinpointConfiguration.Configuration.GetSection("AppSettings")["SQLCommandTimeOut"] != null)
-                    {
-                        adapter.SelectCommand.CommandTimeout = Convert.ToInt16(Startup.PinpointConfiguration.Configuration.GetSection("AppSettings")["SQLCommandTimeOut"]);
-                    }
-
-                    adapter.Fill(ds);
+                    //Trim leading and trailing single quotes for parameterised query
+                    FeatureKeys = FeatureKeys.Trim('\'');
                 }
+
+                var paramDictionary = new Dictionary<string, object> { };
+
+                paramDictionary.Add("featurekey", FeatureKeys);
+                queryString = queryString.Replace("'@featurekey'", "?featurekey");
+                queryString = queryString.Replace("@featurekey", "?featurekey");
+
+                if (ReferenceKey != "")
+                {
+                    paramDictionary.Add("referencekey", ReferenceKey);
+                    queryString = queryString.Replace("'@referencekey'", "?referencekey");
+                    queryString = queryString.Replace("@referencekey", "?referencekey");
+                }
+
+                if (DatabaseKey != "")
+                {
+                    paramDictionary.Add("databasekey", DatabaseKey);
+                    queryString = queryString.Replace("'@databasekey'", "?databasekey");
+                    queryString = queryString.Replace("@databasekey", "?databasekey");
+                }
+
+                //future
+                /*
+                if (PinPointKey != "")
+                {
+                    paramDictionary.Add("pinpointkey", PinPointKey);
+                    queryString = queryString.Replace("'@pinpointkey'", "?pinpointkey");
+                    queryString = queryString.Replace("@pinpointkey", "?pinpointkey");
+                }
+                */
+
+                var cmd = connection.CreateCommandWithNamedParameters(queryString, paramDictionary);
+
+                OdbcDataAdapter adapter = new OdbcDataAdapter(cmd);
+
+                if (Startup.PinpointConfiguration.Configuration.GetSection("AppSettings")["SQLCommandTimeOut"] != null)
+                {
+                    adapter.SelectCommand.CommandTimeout = Convert.ToInt16(Startup.PinpointConfiguration.Configuration.GetSection("AppSettings")["SQLCommandTimeOut"]);
+                }
+                adapter.Fill(ds);
+                
                 connection.Close();
             }
             catch (Exception ex)
@@ -5526,7 +5546,7 @@ namespace PinpointGeospatial.PinpointReports.Controllers
             return ds;
         }
 
-        private DataSet GetDataSetConnString(String queryString, String databaseConnString)
+        private DataSet GetDataSetConnString(String queryString, String databaseConnString, string FeatureKeys, string ReferenceKey, string DatabaseKey, string PinPointKey)
         {
             DataSet ds = new DataSet();
             try
@@ -5534,29 +5554,52 @@ namespace PinpointGeospatial.PinpointReports.Controllers
                 OdbcConnection connection;
                 connection = new OdbcConnection(databaseConnString);
                 connection.Open();
-                using (OdbcCommand cmd = new OdbcCommand(queryString, connection))
+                if (FeatureKeys.StartsWith("'") && FeatureKeys.EndsWith("'"))
                 {
-                    OdbcDataAdapter adapter = new OdbcDataAdapter(queryString, connection);
-
-                    var pFeatureKeys = new OdbcParameter("FeatureKeys", FeatureKeys);
-                    adapter.SelectCommand.Parameters.Add(pFeatureKeys);
-
-                    var pReferenceKey = new OdbcParameter("ReferenceKey", ReferenceKey);
-                    adapter.SelectCommand.Parameters.Add(pReferenceKey);
-
-                    var pDatabaseKey = new OdbcParameter("DatabaseKey", DatabaseKey);
-                    adapter.SelectCommand.Parameters.Add(pDatabaseKey);
-
-                    var pPinPointKey = new OdbcParameter("PinPointKey", PinPointKey);
-                    adapter.SelectCommand.Parameters.Add(pPinPointKey);
-
-                    if (Startup.PinpointConfiguration.Configuration.GetSection("AppSettings")["SQLCommandTimeOut"] != null)
-                    {
-                        adapter.SelectCommand.CommandTimeout = Convert.ToInt16(Startup.PinpointConfiguration.Configuration.GetSection("AppSettings")["SQLCommandTimeOut"]);
-                    }
-
-                    adapter.Fill(ds);
+                    //Trim leading and trailing single quotes for parameterised query
+                    FeatureKeys = FeatureKeys.Trim('\'');
                 }
+
+                var paramDictionary = new Dictionary<string, object> { };
+
+                paramDictionary.Add("featurekey", FeatureKeys);
+                queryString = queryString.Replace("'@featurekey'", "?featurekey");
+                queryString = queryString.Replace("@featurekey", "?featurekey");
+
+                if (ReferenceKey != "")
+                {
+                    paramDictionary.Add("referencekey", ReferenceKey);
+                    queryString = queryString.Replace("'@referencekey'", "?referencekey");
+                    queryString = queryString.Replace("@referencekey", "?referencekey");
+                }
+
+                if (DatabaseKey != "")
+                {
+                    paramDictionary.Add("databasekey", DatabaseKey);
+                    queryString = queryString.Replace("'@databasekey'", "?databasekey");
+                    queryString = queryString.Replace("@databasekey", "?databasekey");
+                }
+
+                //future
+                /*
+                if (PinPointKey != "")
+                {
+                    paramDictionary.Add("pinpointkey", PinPointKey);
+                    queryString = queryString.Replace("'@pinpointkey'", "?pinpointkey");
+                    queryString = queryString.Replace("@pinpointkey", "?pinpointkey");
+                }
+                */
+
+                var cmd = connection.CreateCommandWithNamedParameters(queryString, paramDictionary);
+
+                OdbcDataAdapter adapter = new OdbcDataAdapter(cmd);
+
+                if (Startup.PinpointConfiguration.Configuration.GetSection("AppSettings")["SQLCommandTimeOut"] != null)
+                {
+                    adapter.SelectCommand.CommandTimeout = Convert.ToInt16(Startup.PinpointConfiguration.Configuration.GetSection("AppSettings")["SQLCommandTimeOut"]);
+                }
+                adapter.Fill(ds);
+
                 connection.Close();
             }
             catch (Exception ex)
@@ -5734,4 +5777,43 @@ namespace PinpointGeospatial.PinpointReports.Controllers
 
         }
     }
+
+
+
+    internal static class OdbcConnectionExtensions
+    {
+        static readonly Regex NamedParameterPattern = new Regex(@"\?(\w+)");
+
+        public static OdbcCommand CreateCommandWithNamedParameters(this OdbcConnection connection, string sql, IDictionary<string, object> parameters)
+        {
+            var cmd = connection.CreateCommand();
+            var parameterIndex = 0;
+            cmd.CommandText = NamedParameterPattern.Replace(sql, (m) => {
+                var key = m.Groups[1].Value;
+                var value = parameters[key];
+                var parameterName = string.Format("{0}_{1}", key, parameterIndex++);
+
+                if ((value as string) != null || (value as IEnumerable) == null)
+                {
+                    cmd.Parameters.AddWithValue(parameterName, value ?? DBNull.Value);
+                    return "?";
+                }
+                else
+                {
+                    var enumerable = ((IEnumerable)value).Cast<object>();
+                    var i = 0;
+                    foreach (var el in enumerable)
+                    {
+                        var elementName = string.Format("{0}_{1}", parameterName, i++);
+                        cmd.Parameters.AddWithValue(elementName, el ?? DBNull.Value);
+                    }
+                    return string.Join(",", enumerable.Select(_ => "?"));
+                }
+            });
+            return cmd;
+        }
+    }
+
+
+
 }
